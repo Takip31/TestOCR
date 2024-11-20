@@ -9,7 +9,7 @@ from pdf2image import convert_from_path
    
 try:
         connection = mysql.connector.connect(host='localhost',
-                                        database='sepakat',
+                                        database='database-name',
                                         user='root',
                                         password='' )
                                         
