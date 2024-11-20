@@ -1,0 +1,72 @@
+from cgitb import text
+import glob
+import pytesseract
+import textract
+import sys
+import mysql.connector
+from mysql.connector import Error
+from pdf2image import convert_from_path
+   
+try:
+        connection = mysql.connector.connect(host='localhost',
+                                        database='sepakat',
+                                        user='root',
+                                        password='' )
+                                        
+        pytesseract.pytesseract.tesseract_cmd = r'C:\laragon\www\srunding\TestOCR\Tesseract-OCR\tesseract.exe'
+
+        path = sys.argv[1]
+        file_path=glob.glob(r''+path)
+        for file in file_path:
+            if file.endswith(('.pdf','.PDF',)):
+                pages=convert_from_path(file, 100)
+
+                for pageNum,imgBlob in enumerate(pages): 
+                    text= pytesseract.image_to_string(imgBlob, lang='eng')           
+                    cursor = connection.cursor()
+                    Query = "UPDATE files SET Content=CONCAT(Content,%s) , Status = 'Completed' WHERE Id = %s"
+                    Id = sys.argv[2]
+                    Context = [text,Id]
+                    cursor.execute(Query,Context)
+                    connection.commit()
+                    
+                    
+                
+            if file.endswith(('.png','.PNG','.jpg','.JPG','.jpeg','.JPEG')):
+                    text=pytesseract.image_to_string(file)
+                    cursor = connection.cursor()
+                    #cursor.execute("INSERT INTO files (Content) VALUES (%s)", [text])
+                    Query = "UPDATE files SET Content=CONCAT(Content,%s) , Status = 'Completed' WHERE Id = %s"
+                    Id = sys.argv[2]
+                    Context = [text,Id]
+                    cursor.execute(Query,Context)
+                    connection.commit()
+        
+        
+            if file.endswith(('.docx','.DOCX','.doc','.DOC','.xlsx','.XLSX','.xls','.XLS','.pptx','.PPTX','.ppt','.PPT','.tiff','.TIFF','.gif','.GIF','.epub','.EPUB','.csv','.CSV','.txt','.TXT')):
+                    text=textract.process(file)     
+                    cursor = connection.cursor()
+                    #cursor.execute("INSERT INTO files (Content) VALUES (%s)", [text])
+                    Query = "UPDATE files SET Content=CONCAT(Content,%s) , Status = 'Completed' WHERE Id = %s"
+                    Id = sys.argv[2]
+                    Context = [text,Id]
+                    cursor.execute(Query,Context)
+                    connection.commit()      
+
+   
+        print("Context inserted successfully into files table")
+
+           
+
+except mysql.connector.Error as error:
+        print("Failed to insert into files table {}".format(error))
+
+finally:
+    if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection is closed")
+
+
+
+
