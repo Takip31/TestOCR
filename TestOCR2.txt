@@ -12,7 +12,7 @@ def OCR():
    
     try:
             connection = mysql.connector.connect(host='localhost',
-                                            database='sepakat',
+                                            database='database-name',
                                             user='root',
                                             password='' )
 
